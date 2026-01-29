@@ -67,3 +67,84 @@ components.This ensures loose coupling, isolation, and location transparency.
 - Spring Reactive Types (both types implement the Reactive Streams Publisher interface):
   - Mono - is a publisher with zero or one elements in data stream
   - Flux - is a publisher with zero or MANY elements in the data stream
+  
+### Mono Operations
+
+```java
+//subscribe - starts the execution
+  @Test
+    void getByIdMapFunction(){
+        Mono<Person> personMono = personRepository.getById(1);
+
+        personMono.map(person -> {
+            System.out.println(person.toString());
+            return person.getFirstName();
+        }).subscribe(firstName -> {
+            System.out.println("from map: " + firstName);
+        });
+    }
+```
+### Flux Operations
+```java
+@Test
+    void testFluxToListMono() {
+        Flux<Person> personFlux = personRepository.findAll();
+
+        Mono<List<Person>> personListMono = personFlux.collectList();
+
+        personListMono.subscribe(list -> {
+           list.forEach(person -> {
+               System.out.println(person.toString());
+           });
+        });
+    }
+```
+### Filtering Flux objects
+```java
+   @Test
+    void testFindPersonById() {
+        Flux<Person> personFlux = personRepository.findAll();
+
+        final Integer id = 3;
+
+        Mono<Person> personListMono = personFlux.filter(person ->
+                person.getId() == id).next();
+
+        personListMono.subscribe(person -> {
+            System.out.println(person.toString());
+        });
+    }
+```
+
+### Reactive StepVerifier
+- Used for tests
+- Part of reactor-test
+
+```java
+ @Test
+ void getByIdSubscribe() {
+        Mono<Person> personMono = personRepository.getById(1);
+
+        StepVerifier.create(personMono)
+                .expectNextCount(1) //how many elements 
+                					//will go through the stream
+                .verifyComplete();
+
+        personMono.subscribe(person -> {
+            System.out.println(person.toString());
+        });
+    }
+    
+    @Test
+    void testFluxSubscribe() {
+        Flux<Person> personFlux = personRepository.findAll();
+
+        StepVerifier.create(personFlux)
+                .expectNextCount(4)
+                .verifyComplete();
+
+        personFlux.subscribe(person -> {
+            System.out.println(person.toString());
+        });
+    }
+```
