@@ -99,6 +99,22 @@ components.This ensures loose coupling, isolation, and location transparency.
         });
     }
 ```
+### Filtering Flux objects
+```java
+   @Test
+    void testFindPersonById() {
+        Flux<Person> personFlux = personRepository.findAll();
+
+        final Integer id = 3;
+
+        Mono<Person> personListMono = personFlux.filter(person ->
+                person.getId() == id).next();
+
+        personListMono.subscribe(person -> {
+            System.out.println(person.toString());
+        });
+    }
+```
 
 ### Reactive StepVerifier
 - Used for tests
@@ -132,3 +148,22 @@ components.This ensures loose coupling, isolation, and location transparency.
         });
     }
 ```
+## Netflux Reactive Example
+### Service
+```java
+@Service
+@RequiredArgsConstructor
+public class MovieServiceImpl implements MovieService {
+
+    private final MovieRepository movieRepository;
+
+//this generates a MovieEvent every second
+    @Override
+    public Flux<MovieEvent> streamMovieEvents(String id) {
+        return Flux.<MovieEvent>generate(movieEventSynchronousSink -> {
+            movieEventSynchronousSink.next(new MovieEvent(id, new Date()));
+        }).delayElements(Duration.ofSeconds(1));
+    }
+}
+```
+### Boostrap

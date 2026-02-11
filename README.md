@@ -148,3 +148,43 @@ components.This ensures loose coupling, isolation, and location transparency.
         });
     }
 ```
+## Netflux Reactive Example
+### Service
+```java
+@Service
+@RequiredArgsConstructor
+public class MovieServiceImpl implements MovieService {
+
+    private final MovieRepository movieRepository;
+
+//this generates a MovieEvent every second
+    @Override
+    public Flux<MovieEvent> streamMovieEvents(String id) {
+        return Flux.<MovieEvent>generate(movieEventSynchronousSink -> {
+            movieEventSynchronousSink.next(new MovieEvent(id, new Date()));
+        }).delayElements(Duration.ofSeconds(1));
+    }
+}
+```
+### Boostraping
+```java
+@RequiredArgsConstructor
+@Component
+public class InitMovies implements CommandLineRunner {
+
+    private final MovieRepository movieRepository;
+
+    @Override
+    public void run(String... args) throws Exception {
+
+        movieRepository.deleteAll().thenMany(
+                Flux.just("Silence of the Lambdas", "AEon Flux", "Enter the Mono<Void>", "The Fluxxinator",
+                                "Back to the Future", "Meet the Fluxes", "Lord of the Fluxes")
+                        .map(Movie::new)
+                        .flatMap(movieRepository::save)
+        ).subscribe(null, null, () -> {
+            movieRepository.findAll().subscribe(System.out::println);
+        });
+    }
+}
+```
