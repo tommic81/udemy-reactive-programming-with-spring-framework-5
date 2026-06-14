@@ -166,4 +166,83 @@ public class MovieServiceImpl implements MovieService {
     }
 }
 ```
-### Boostrap
+### Boostraping
+```java
+@RequiredArgsConstructor
+@Component
+public class InitMovies implements CommandLineRunner {
+
+    private final MovieRepository movieRepository;
+
+    @Override
+    public void run(String... args) throws Exception {
+
+        movieRepository.deleteAll().thenMany(
+                Flux.just("Silence of the Lambdas", "AEon Flux", "Enter the Mono<Void>", "The Fluxxinator",
+                                "Back to the Future", "Meet the Fluxes", "Lord of the Fluxes")
+                        .map(Movie::new)
+                        .flatMap(movieRepository::save)
+        ).subscribe(null, null, () -> {
+            movieRepository.findAll().subscribe(System.out::println);
+        });
+    }
+}
+```
+## Spring Web Client
+### Functional Programming
+|Imperative|Declarative|
+|----------|-----------|
+|How to do it| What to do|
+|Mutable| Immutable(Transform)|
+|Has side effects| No side effects|
+|Pass Objects| Can also pass functions|
+|Hard to Compose | Functional Composition|
+|No Threadsafe| Threadsafe|
+ 
+- Mutable vs Immutable
+  - Mutable objects can be error prone and hard to understand
+  - Immutable objects are easier to use
+  - Immutable objects are thread safe
+  - Mutable objects open the door to concurrency problems
+  
+- Java Functions
+  - Remember in Java - “Everything is an Object”
+  - Java Function interface was introduced in Java 8
+  - Java Functions:
+  - Can be passed objects
+  - Can create objects
+  - Can return objects
+  
+- Java Functional Interfaces
+  - Added to package java.util.function
+  - Functional Interfaces rely on using Generics
+  - Function<I, O> - accepts type I, returns type O
+  - Predicate<T> - Accepts type T, returns boolean
+  - Supplier<T> - Accepts no input, returns type T
+  - Consumer<T> - accepts type T, returns no output
+  
+### Rest Template vs Web Client
+- Spring RestTemplate
+  - Is Blocking
+  - Based on Java Servlet API
+  - Used one thread per request
+  - Will block during request
+  
+- Spring WebClient
+  - Is asynchronous, non-blocking
+  - Based on Spring Reactive Framework
+  - Requests are ‘queued’ and processed when available
+  - Uses Mono & Flux types
+  - Allows for functional / declarative programming
+  
+- Which to Use?
+  - Performance will be similar until a heavier load
+  - RestTemplate has been in Spring for a long time and is very mature
+  - RestTemplate has been moved to ‘maintenance’ mode by Spring
+  - Meaning no new features will be developed
+  - WebClient is being actively developed by Spring
+  - At some point in the future RestTemplate will be deprecated
+  - This is likely YEARS into the future
+  
+### Beer Project Overview
+- [Name Beer Service API](https://sfg-beer-works.github.io/brewery-api/#tag/Beer-Service)
